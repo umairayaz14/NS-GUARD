@@ -1,0 +1,14 @@
+val2017/
+train2017/
+annotations/
+*.zip
+detections.json
+*.pt
+annotated*/
+demo/
+*.png
+*.jpg
+*.mp4
+__pycache__/
+*.pyc
+.DS_Store
