@@ -8,36 +8,64 @@ A lightweight learned relational head that flags **inter-object safety hazards**
 and beats both a naive and a strong hand-crafted symbolic baseline by learning
 to exploit the detector's **confidence scores**.
 
-## Key results (held-out validation, pair-level)
+## Key results (trained on COCO train2017, tested on untouched val2017)
+
+Pair-level, evaluated once on the held-out val2017 detections. No val2017 image
+was seen during training; the head was trained on 267,417 detected object pairs
+from train2017.
 
 | | Naive baseline | Symbolic baseline | MLP (no conf.) | **MLP (full)** |
 |---|---|---|---|---|
-| AP | — | — | 0.410 | **0.590** |
-| F1 | 0.303 | 0.510 | 0.526 | **0.600** |
-| FPR | 0.199 | 0.069 | 0.065 | **0.036** |
+| AP | — | — | 0.451 | **0.643** |
+| F1 @0.5 | 0.295 | 0.493 | 0.423 | **0.539** |
+| FPR @0.5 | 0.195 | 0.070 | 0.020 | **0.007** |
 
-Removing the confidence features (ablation) drops AP from 0.59 to 0.41 and
-erases the advantage over the symbolic baseline — the learned head's gain comes
-specifically from discounting unreliable detections.
+Removing the confidence features (ablation) drops AP from **0.643 to 0.451** and
+erases the advantage over the strong symbolic baseline — the learned head's gain
+comes specifically from discounting unreliable, low-confidence detections.
+
+On the pairs where the MLP and the strong baseline disagree (837 of 10,745), the
+MLP is correct **645** times versus **192** for the baseline.
+
+Full run logs are in [`results/`](results/), and the PR curves are shown below.
+
+![Test PR curve (full model)](pr_test_full.png)
 
 ## Quickstart
+
+The headline result comes from training on COCO train2017 and evaluating on
+val2017. A GPU is recommended for the detector pass over train2017
+(~3-4 h on a T4); the steps below mirror the run that produced the numbers above.
 
 ```bash
 pip install -r requirements.txt
 
-# data (COCO val2017: images ~1GB + annotations)
+# data: COCO train2017 (training) + val2017 (test) + annotations
 wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip && unzip annotations_trainval2017.zip
+wget http://images.cocodataset.org/zips/train2017.zip && unzip train2017.zip
 wget http://images.cocodataset.org/zips/val2017.zip && unzip val2017.zip
 
-# 1. run the frozen detector once
-python detect.py --image-dir ./val2017 --out detections.json --conf 0.15 --iou 0.7
-# 2. train the relational head
-python train.py --annotations ./annotations/instances_val2017.json --detections detections.json --pos-weight 5
-# 3. evaluate (held-out split)
-python evaluate.py --annotations ./annotations/instances_val2017.json --detections detections.json --model best_model.pt --split val
-# 4. live demo (webcam; or pass an image/folder/video path)
+# 1. run the frozen detector over BOTH splits (train2017 is the long step)
+python detect.py --image-dir ./train2017 --out detections_train.json --conf 0.15 --iou 0.7
+python detect.py --image-dir ./val2017   --out detections_val.json   --conf 0.15 --iou 0.7
+
+# 2. (optional) sweep pos_weight on train2017 to pick the operating point
+python sweep.py --annotations ./annotations/instances_train2017.json --detections detections_train.json
+
+# 3. train the relational head on train2017 (plus the no-confidence ablation)
+python train.py --annotations ./annotations/instances_train2017.json --detections detections_train.json --pos-weight 1 --out best_model.pt
+python train.py --annotations ./annotations/instances_train2017.json --detections detections_train.json --pos-weight 1 --no-confidence --out best_model_noconf.pt
+
+# 4. TEST on untouched val2017 (run once per model)
+python evaluate.py --annotations ./annotations/instances_val2017.json --detections detections_val.json --model best_model.pt --split all
+
+# 5. live demo (webcam; or pass an image/folder/video path)
 python infer.py --source 0 --model best_model.pt --show --flag-thresh 0.6 --top-n 4
 ```
+
+For a quick local smoke test without the full train2017 download, run the same
+pipeline on val2017 alone and add `--limit 200` to the detector pass — but the
+headline numbers above come from the train2017 → val2017 setup.
 
 ---
 
@@ -87,37 +115,6 @@ pip install torch torchvision numpy scikit-learn ultralytics opencv-python
 ```
 
 `ultralytics` auto-downloads YOLO weights on first use. Default `yolov8m.pt`.
-(The proposal cited "YOLO26" — use whatever the current Ultralytics release
-provides; only the `--weights` filename changes.)
-
-## Data: COCO val2017 (images + annotations)
-
-```bash
-wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
-unzip annotations_trainval2017.zip          # -> annotations/instances_val2017.json
-wget http://images.cocodataset.org/zips/val2017.zip
-unzip val2017.zip                           # -> val2017/*.jpg  (~5k images, ~1GB)
-```
-
-## Run
-
-```bash
-# 0. (optional) sanity-check the logic, no downloads needed
-python test_pipeline.py
-
-# 1. detector pass — ONCE over the images
-python detect.py --image-dir ./val2017 --out detections.json \
-    --weights yolov8m.pt --conf 0.15 --iou 0.7
-#   (use --limit 200 for a quick smoke test first)
-
-# 2. train the MLP head (splits val2017 by image; standardizes; early-stops)
-python train.py --annotations ./annotations/instances_val2017.json \
-    --detections detections.json
-
-# 3. evaluate baseline vs MLP (pair + image level, with edge cases)
-python evaluate.py --annotations ./annotations/instances_val2017.json \
-    --detections detections.json --model best_model.pt
-```
 
 ## Inference / deployment (no ground truth)
 
@@ -134,7 +131,7 @@ python infer.py --source 0 --model best_model.pt --show --flag-thresh 0.3   # ov
 
 Draws each flagged pair's two boxes in red + connecting line + rule/probability,
 dims other detections, shows a HAZARD banner. For video/webcam it prints the mean
-per-frame guard overhead (the ILO metric: pairing + MLP time, excl. detector).
+per-frame guard overhead (pairing + MLP time, excluding the detector).
 
 ## Feature vector (15-dim)
 
@@ -161,74 +158,45 @@ Ground truth is used **only** to compute the label, never as a feature.
 
 `best_model.pt` is a dict: `{model, mean, std, input_dim, hazard_mode}`.
 `evaluate.py` and `infer.py` read the scaler from it so preprocessing matches
-training exactly. (Old plain-`state_dict` checkpoints are not compatible — retrain.)
+training exactly.
 
 ## Metrics
 
-- **VDA (recall)** — fraction of true hazards flagged.
+- **Recall** — fraction of true hazards flagged.
 - **FPR** — fraction of safe cases wrongly flagged.
 - Reported pair-level and image-level (OR aggregation).
 - `evaluate.py` dumps the disagreement set (MLP vs baseline) and who's right —
   the edge-case analysis. Read **"On disagreements: MLP correct X, baseline
   correct Y"** as the headline verdict.
 
-## Experiments (rigor for the comparison)
+## Experiments
 
 Two baselines are reported, both applied to the **detected** boxes:
 - **naive** — a single global distance threshold (a non-expert's one-number rule).
-- **multi** — the FULL multi-factor hazard rule (the original symbolic NS-Guard).
-  This is the STRONG baseline: if the MLP beats it, the win comes from using
-  detector **confidence**, which no rule-on-detections can.
+- **multi** — the FULL multi-factor hazard rule (the symbolic NS-Guard). This is
+  the STRONG baseline: if the MLP beats it, the win comes from using detector
+  **confidence**, which no rule-on-detections can.
 
 **Confidence ablation** — train the head with the confidence features zeroed:
 
 ```bash
-python train.py --annotations ... --detections detections.json \
-    --pos-weight 5 --no-confidence --out best_model_noconf.pt
+python train.py --annotations ./annotations/instances_train2017.json \
+    --detections detections_train.json --pos-weight 1 --no-confidence --out best_model_noconf.pt
 ```
 
-If precision drops toward the baseline without confidence, that proves the head's
-advantage is confidence-awareness. `evaluate.py` honors the ablation flag stored
-in the checkpoint.
+Without confidence, AP falls from 0.643 to 0.451, confirming the head's advantage
+is confidence-awareness. `evaluate.py` honors the ablation flag stored in the
+checkpoint.
 
-**Per-rule metrics** — `evaluate.py` now reports precision/recall/F1/FPR (and AP
-for the MLP) broken down by rule pair (cup-laptop, person-car, knife-person), not
-just the average — different relationships behave very differently.
-
-Suggested experiment matrix to fill for the report (overall + per rule):
-
-| | naive baseline | multi baseline | MLP (no conf) | MLP (full) |
-|---|---|---|---|---|
-| AP / F1 / FPR | | | | |
-
-## Tuning the MLP (precision/recall, AP)
-
-The automatic `pos_weight` (negatives/positives, e.g. ~24) over-pushes recall and
-tanks precision. To find a better balance and report a threshold-free number:
-
-```bash
-# scan pos_weight values; reports F1@0.5, AP, and best-F1 threshold per value,
-# saves PR-curve overlay (pr_sweep.png) and the best-AP model to best_model.pt
-python sweep.py --annotations ./annotations/instances_val2017.json \
-    --detections detections.json --values 1 3 5 8 12 24
-```
-
-Then train a final model at your chosen value:
-
-```bash
-python train.py --annotations ./annotations/instances_val2017.json \
-    --detections detections.json --pos-weight 5
-```
-
-`evaluate.py` now also reports **Average Precision (AP)** (threshold-free), a
-**precision/recall/F1 sweep over thresholds**, and saves a PR curve
-(`pr_eval.png`) with the baseline as a single point. Pick an operating threshold
-with `--flag-thresh` (e.g. high recall for a safety system) and report that point
-plus AP, rather than F1 at a fixed 0.5.
+**Per-rule metrics** — `evaluate.py` reports precision/recall/F1/FPR (and AP for
+the MLP) broken down by rule pair (cup-laptop, person-car, knife-person), since
+different relationships behave very differently.
 
 ## Tuning
 
-- If the MLP–baseline gap is small in `"distance"` mode, that's expected — switch
+- The `pos_weight` sweep (`sweep.py`, values 1–24) picks the operating point;
+  `pos_weight=1` gave the best AP here.
+- If the MLP–baseline gap is small in `"distance"` mode, switch
   `HAZARD_MODE = "multi"`.
 - Lower `--conf` (e.g. 0.10) to admit more shaky detections (more for the
   confidence feature to exploit).
