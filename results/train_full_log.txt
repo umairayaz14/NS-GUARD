@@ -1,0 +1,30 @@
+HAZARD_MODE = multi | naive baseline thr = 0.133
+Total detected pairs: 267417
+True violations:      11878 (4.4%)
+Naive baseline fires: 58115 (21.7%)
+Multi baseline fires: 26040 (9.7%)
+
+Train pairs: 211844  |  Val pairs: 55573
+pos_weight = 1.00  (auto would be 21.61)
+Epoch 01 | Loss 0.0860 | P 0.683 | R 0.292 | F1 0.409 | FPR 0.006
+Epoch 02 | Loss 0.0806 | P 0.692 | R 0.367 | F1 0.480 | FPR 0.008
+Epoch 03 | Loss 0.0793 | P 0.713 | R 0.362 | F1 0.480 | FPR 0.007
+Epoch 04 | Loss 0.0780 | P 0.745 | R 0.338 | F1 0.465 | FPR 0.005
+Epoch 05 | Loss 0.0765 | P 0.755 | R 0.358 | F1 0.486 | FPR 0.005
+Epoch 06 | Loss 0.0755 | P 0.726 | R 0.397 | F1 0.513 | FPR 0.007
+Epoch 07 | Loss 0.0753 | P 0.734 | R 0.379 | F1 0.500 | FPR 0.006
+Epoch 08 | Loss 0.0749 | P 0.720 | R 0.392 | F1 0.507 | FPR 0.007
+Epoch 09 | Loss 0.0749 | P 0.745 | R 0.369 | F1 0.494 | FPR 0.006
+Epoch 10 | Loss 0.0745 | P 0.763 | R 0.356 | F1 0.486 | FPR 0.005
+Epoch 11 | Loss 0.0749 | P 0.728 | R 0.408 | F1 0.523 | FPR 0.007
+Epoch 12 | Loss 0.0745 | P 0.744 | R 0.381 | F1 0.504 | FPR 0.006
+Epoch 13 | Loss 0.0738 | P 0.707 | R 0.414 | F1 0.522 | FPR 0.008
+Epoch 14 | Loss 0.0738 | P 0.720 | R 0.406 | F1 0.519 | FPR 0.007
+Epoch 15 | Loss 0.0738 | P 0.733 | R 0.390 | F1 0.509 | FPR 0.007
+Epoch 16 | Loss 0.0738 | P 0.732 | R 0.389 | F1 0.508 | FPR 0.007
+Epoch 17 | Loss 0.0744 | P 0.750 | R 0.367 | F1 0.493 | FPR 0.006
+Epoch 18 | Loss 0.0736 | P 0.748 | R 0.367 | F1 0.492 | FPR 0.006
+Epoch 19 | Loss 0.0738 | P 0.726 | R 0.400 | F1 0.516 | FPR 0.007
+Early stop at epoch 19.
+Best F1 0.523 at epoch 11
+Model + scaler saved to /kaggle/working/best_model_train.pt
