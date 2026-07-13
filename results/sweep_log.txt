@@ -1,0 +1,43 @@
+HAZARD_MODE = multi | naive baseline thr = 0.133
+Total detected pairs: 267417
+True violations:      11878 (4.4%)
+Naive baseline fires: 58115 (21.7%)
+Multi baseline fires: 26040 (9.7%)
+Train pairs 211844 | Val pairs 55573 | Val positives 2509
+
+===== pos_weight = 1 =====
+pos_weight = 1.00  (auto would be 21.61)
+  F1@0.5 0.553 | AP 0.666 | bestF1 0.614 @thr 0.30 (P 0.536 R 0.718)
+
+===== pos_weight = 3 =====
+pos_weight = 3.00  (auto would be 21.61)
+  F1@0.5 0.608 | AP 0.663 | bestF1 0.612 @thr 0.51 (P 0.535 R 0.715)
+
+===== pos_weight = 5 =====
+pos_weight = 5.00  (auto would be 21.61)
+  F1@0.5 0.587 | AP 0.658 | bestF1 0.602 @thr 0.63 (P 0.518 R 0.718)
+
+===== pos_weight = 8 =====
+pos_weight = 8.00  (auto would be 21.61)
+  F1@0.5 0.554 | AP 0.662 | bestF1 0.609 @thr 0.69 (P 0.493 R 0.796)
+
+===== pos_weight = 12 =====
+pos_weight = 12.00  (auto would be 21.61)
+  F1@0.5 0.541 | AP 0.660 | bestF1 0.612 @thr 0.82 (P 0.533 R 0.719)
+
+===== pos_weight = 24 =====
+pos_weight = 24.00  (auto would be 21.61)
+  F1@0.5 0.494 | AP 0.653 | bestF1 0.606 @thr 0.92 (P 0.547 R 0.678)
+
+
+ pos_weight |  F1@0.5 |   AP   | bestF1 | thr  |  P    |  R
+-----------+---------+--------+--------+------+-------+------
+      1.0  |  0.553  | 0.666  | 0.614  | 0.30 | 0.536 | 0.718
+      3.0  |  0.608  | 0.663  | 0.612  | 0.51 | 0.535 | 0.715
+      5.0  |  0.587  | 0.658  | 0.602  | 0.63 | 0.518 | 0.718
+      8.0  |  0.554  | 0.662  | 0.609  | 0.69 | 0.493 | 0.796
+     12.0  |  0.541  | 0.660  | 0.612  | 0.82 | 0.533 | 0.719
+     24.0  |  0.494  | 0.653  | 0.606  | 0.92 | 0.547 | 0.678
+
+PR overlay saved -> pr_sweep.png
+Best model (pos_weight=1, AP=0.666) saved -> best_model.pt
