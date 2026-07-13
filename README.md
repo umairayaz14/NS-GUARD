@@ -27,9 +27,13 @@ comes specifically from discounting unreliable, low-confidence detections.
 On the pairs where the MLP and the strong baseline disagree (837 of 10,745), the
 MLP is correct **645** times versus **192** for the baseline.
 
-Full run logs are in [`results/`](results/), and the PR curves are shown below.
+Full run logs are in [`results/`](results/). The PR curves below show the full model, the confidence ablation, and the pos_weight sweep.
 
-![Test PR curve (full model)](pr_test_full.png)
+![Test PR curve — full model](pr_test_full.png)
+
+![Test PR curve — no-confidence ablation](pr_test_noconf.png)
+
+![pos_weight sweep](pr_sweep.png)
 
 ## Quickstart
 
