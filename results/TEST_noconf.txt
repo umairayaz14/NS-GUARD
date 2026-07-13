@@ -1,0 +1,48 @@
+HAZARD_MODE = multi | naive baseline thr = 0.133
+Total detected pairs: 10745
+True violations:      435 (4.0%)
+Naive baseline fires: 2435 (22.7%)
+Multi baseline fires: 1097 (10.2%)
+
+=== Overall (pair-level)  [split=all] ===
+  Baseline naive (1 threshold) | P 0.174 | R 0.975 | F1 0.295 | FPR 0.195
+  Baseline multi (full rule)   | P 0.345 | R 0.869 | F1 0.493 | FPR 0.070
+  (model trained WITHOUT confidence — ablation)
+  MLP @ thr=0.5                | P 0.458 | R 0.393 | F1 0.423 | FPR 0.020
+
+MLP Average Precision (threshold-free): 0.451
+
+=== Image-level (OR aggregation) ===
+  Baseline naive               | P 0.436 | R 0.987 | F1 0.604 | FPR 0.446
+  Baseline multi               | P 0.540 | R 0.993 | F1 0.699 | FPR 0.296
+  MLP @ thr=0.5                | P 0.729 | R 0.675 | F1 0.701 | FPR 0.088
+
+Per-rule — Baseline naive
+  cup-laptop     (n=  158, pos=  14) | P 0.344 | R 0.786 | F1 0.478 | FPR 0.146
+  person-car     (n= 9561, pos= 406) | P 0.172 | R 0.993 | F1 0.294 | FPR 0.211
+  knife-person   (n= 1026, pos=  15) | P 0.156 | R 0.667 | F1 0.253 | FPR 0.053
+
+Per-rule — Baseline multi
+  cup-laptop     (n=  158, pos=  14) | P 0.545 | R 0.857 | F1 0.667 | FPR 0.069
+  person-car     (n= 9561, pos= 406) | P 0.351 | R 0.872 | F1 0.500 | FPR 0.072
+  knife-person   (n= 1026, pos=  15) | P 0.182 | R 0.800 | F1 0.296 | FPR 0.053
+
+Per-rule — MLP @ thr=0.5
+  cup-laptop     (n=  158, pos=  14) | P 0.625 | R 0.714 | F1 0.667 | FPR 0.042 | AP 0.643
+  person-car     (n= 9561, pos= 406) | P 0.450 | R 0.392 | F1 0.419 | FPR 0.021 | AP 0.450
+  knife-person   (n= 1026, pos=  15) | P 0.500 | R 0.133 | F1 0.211 | FPR 0.002 | AP 0.270
+
+MLP threshold sweep (pair-level):
+  thr  |  P    |  R    |  F1   | FPR
+  0.3  | 0.367 | 0.777 | 0.498 | 0.057
+  0.4  | 0.410 | 0.639 | 0.500 | 0.039
+  0.5  | 0.458 | 0.393 | 0.423 | 0.020
+  0.6  | 0.640 | 0.037 | 0.070 | 0.001
+  0.7  | 0.000 | 0.000 | 0.000 | 0.000
+  0.8  | 0.000 | 0.000 | 0.000 | 0.000
+  0.9  | 0.000 | 0.000 | 0.000 | 0.000
+
+PR curve saved -> /kaggle/working/pr_test_noconf.png
+
+MLP vs STRONG baseline: disagree on 734 / 10745 pairs
+On disagreements: MLP correct 522, strong-baseline correct 212
