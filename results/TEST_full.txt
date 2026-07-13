@@ -1,0 +1,47 @@
+HAZARD_MODE = multi | naive baseline thr = 0.133
+Total detected pairs: 10745
+True violations:      435 (4.0%)
+Naive baseline fires: 2435 (22.7%)
+Multi baseline fires: 1097 (10.2%)
+
+=== Overall (pair-level)  [split=all] ===
+  Baseline naive (1 threshold) | P 0.174 | R 0.975 | F1 0.295 | FPR 0.195
+  Baseline multi (full rule)   | P 0.345 | R 0.869 | F1 0.493 | FPR 0.070
+  MLP @ thr=0.5                | P 0.711 | R 0.434 | F1 0.539 | FPR 0.007
+
+MLP Average Precision (threshold-free): 0.643
+
+=== Image-level (OR aggregation) ===
+  Baseline naive               | P 0.436 | R 0.987 | F1 0.604 | FPR 0.446
+  Baseline multi               | P 0.540 | R 0.993 | F1 0.699 | FPR 0.296
+  MLP @ thr=0.5                | P 0.817 | R 0.709 | F1 0.759 | FPR 0.055
+
+Per-rule — Baseline naive
+  cup-laptop     (n=  158, pos=  14) | P 0.344 | R 0.786 | F1 0.478 | FPR 0.146
+  person-car     (n= 9561, pos= 406) | P 0.172 | R 0.993 | F1 0.294 | FPR 0.211
+  knife-person   (n= 1026, pos=  15) | P 0.156 | R 0.667 | F1 0.253 | FPR 0.053
+
+Per-rule — Baseline multi
+  cup-laptop     (n=  158, pos=  14) | P 0.545 | R 0.857 | F1 0.667 | FPR 0.069
+  person-car     (n= 9561, pos= 406) | P 0.351 | R 0.872 | F1 0.500 | FPR 0.072
+  knife-person   (n= 1026, pos=  15) | P 0.182 | R 0.800 | F1 0.296 | FPR 0.053
+
+Per-rule — MLP @ thr=0.5
+  cup-laptop     (n=  158, pos=  14) | P 0.800 | R 0.571 | F1 0.667 | FPR 0.014 | AP 0.786
+  person-car     (n= 9561, pos= 406) | P 0.717 | R 0.431 | F1 0.538 | FPR 0.008 | AP 0.646
+  knife-person   (n= 1026, pos=  15) | P 0.500 | R 0.400 | F1 0.444 | FPR 0.006 | AP 0.510
+
+MLP threshold sweep (pair-level):
+  thr  |  P    |  R    |  F1   | FPR
+  0.3  | 0.456 | 0.752 | 0.568 | 0.038
+  0.4  | 0.575 | 0.572 | 0.574 | 0.018
+  0.5  | 0.711 | 0.434 | 0.539 | 0.007
+  0.6  | 0.756 | 0.356 | 0.484 | 0.005
+  0.7  | 0.814 | 0.292 | 0.430 | 0.003
+  0.8  | 0.937 | 0.136 | 0.237 | 0.000
+  0.9  | 1.000 | 0.005 | 0.009 | 0.000
+
+PR curve saved -> /kaggle/working/pr_test_full.png
+
+MLP vs STRONG baseline: disagree on 837 / 10745 pairs
+On disagreements: MLP correct 645, strong-baseline correct 192
